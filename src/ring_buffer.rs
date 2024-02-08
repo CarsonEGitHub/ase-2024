@@ -1,64 +1,137 @@
 pub struct RingBuffer<T> {
-    // TODO: fill this in.
+    buffer: Vec<T>,
+    read_index: usize,
+    write_index: usize,
 }
 
-impl<T: Copy + Default> RingBuffer<T> {
+impl<T: Copy + Default + PartialEq + std::fmt::Debug> RingBuffer<T> {
     pub fn new(length: usize) -> Self {
-        // Create a new RingBuffer with `length` slots and "default" values.
-        // Hint: look into `vec!` and the `Default` trait.
-        todo!()
+        let buffer = vec![T::default(); length];
+        let read_index = 0;
+        let write_index = 0;
+
+        RingBuffer {
+            buffer,
+            read_index,
+            write_index,
+        }
     }
 
     pub fn reset(&mut self) {
-        // Clear internal buffer and reset indices.
-        todo!()
-    }
+        self.buffer.iter_mut().for_each(|item| *item = T::default());
+        self.read_index = 0;
+        self.write_index = 0;
+    } 
 
-    // `put` and `peek` write/read without advancing the indices.
     pub fn put(&mut self, value: T) {
-        todo!()
+        self.buffer[self.write_index] = value;
     }
 
     pub fn peek(&self) -> T {
-        todo!()
+        self.buffer[self.read_index]
     }
 
     pub fn get(&self, offset: usize) -> T {
-        todo!()
+        self.buffer[(self.read_index + offset) % self.buffer.len()]
     }
 
-    // `push` and `pop` write/read and advance the indices.
     pub fn push(&mut self, value: T) {
-        todo!()
+        self.buffer[self.write_index] = value;
+        self.write_index = (self.write_index + 1) % self.buffer.len();
     }
 
     pub fn pop(&mut self) -> T {
-        todo!()
+        let value = self.buffer[self.read_index];
+        self.read_index = (self.read_index + 1) % self.buffer.len();
+        value
     }
 
     pub fn get_read_index(&self) -> usize {
-        todo!()
+        self.read_index
     }
 
     pub fn set_read_index(&mut self, index: usize) {
-        todo!()
+        self.read_index = index % self.buffer.len();
     }
 
-    pub fn get_write_index(&self) -> T {
-        todo!()
+    pub fn get_write_index(&self) -> usize {
+        self.write_index
     }
 
     pub fn set_write_index(&mut self, index: usize) {
-        todo!()
+        self.write_index = index % self.buffer.len();
     }
 
     pub fn len(&self) -> usize {
-        // Return number of values currently in the buffer.
-        todo!()
+        (self.write_index + self.buffer.len() - self.read_index) % self.buffer.len()
     }
 
     pub fn capacity(&self) -> usize {
-        // Return the length of the internal buffer.
-        todo!()
+        self.buffer.len()
+    }
+}
+
+// a couple of tests
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_push_and_pop() {
+        let mut buffer = RingBuffer::new(3);
+
+        buffer.push(1);
+        buffer.push(2);
+        buffer.push(3);
+
+        assert_eq!(buffer.pop(), 1);
+        assert_eq!(buffer.pop(), 2);
+        assert_eq!(buffer.pop(), 3);
+    }
+
+    #[test]
+    fn test_peek() {
+        let mut buffer = RingBuffer::new(3);
+
+        buffer.push(1);
+        buffer.push(2);
+
+        assert_eq!(buffer.peek(), 1);
+
+        buffer.pop();
+
+        assert_eq!(buffer.peek(), 2);
+    }
+
+    #[test]
+    fn test_set_read_and_write_index() {
+        let mut buffer = RingBuffer::new(3);
+
+        buffer.push(1);
+        buffer.push(2);
+        buffer.push(3);
+
+        buffer.set_read_index(1);
+        buffer.set_write_index(2);
+
+        assert_eq!(buffer.get_read_index(), 1);
+        assert_eq!(buffer.get_write_index(), 2);
+
+        assert_eq!(buffer.get(0), 2);
+        assert_eq!(buffer.get(1), 3);
+    }
+
+    #[test]
+    fn test_reset() {
+        let mut buffer = RingBuffer::new(3);
+
+        buffer.push(1);
+        buffer.push(2);
+
+        buffer.reset();
+
+        assert_eq!(buffer.len(), 0);
+        assert_eq!(buffer.get_read_index(), 0);
+        assert_eq!(buffer.get_write_index(), 0);
     }
 }
