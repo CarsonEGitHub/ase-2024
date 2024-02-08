@@ -71,7 +71,6 @@ impl<T: Copy + Default + PartialEq + std::fmt::Debug> RingBuffer<T> {
     }
 }
 
-// a couple of tests
 #[cfg(test)]
 mod tests {
     use super::*;
